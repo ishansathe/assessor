@@ -97,7 +97,7 @@ function TypeCastChecking(AST) {
         StateVariableDeclaration: function(svb) {
             // console.log(svb.variables[0].name)
             // Only 1 variable in each *state* variable declaration (for solidity)
-            getName_and_Type(svb.variables[0], svb.variables[0].typeName, "", false)
+            getName_and_Type(svb.variables[0], svb.variables[0].typeName, "", false, false)
             // Passing typeName for compatibility issues
             // Type is an empty string and mapping is false for starters.
         }
@@ -105,27 +105,39 @@ function TypeCastChecking(AST) {
     // console.log(variableList)
 }
 
-function getName_and_Type(vb, vbTypeInfo, type, mapping) {
+function getName_and_Type(vb, vbTypeInfo, type, mapping, array) {
     let done = false
     if(vbTypeInfo.type == 'Mapping'){
         type = type  + vbTypeInfo.keyType.name + '=>'
         mapping = true
-        getName_and_Type(vb, vbTypeInfo.valueType, type, mapping)
+        getName_and_Type(vb, vbTypeInfo.valueType, type, mapping, array)
     }
     if(vbTypeInfo.type == 'ElementaryTypeName'){
-        type = type + vbTypeInfo.name
-        done = true
+        if(mapping){
+            type = type + vbTypeInfo.name
+            done = true
+        }
+        if(array){
+            type = vbTypeInfo.name + type
+            done = true
+        }
     }
     if(mapping && done) {
         console.log(vb.name, type)
     }
 
-    if(!mapping){
-        console.log(vb.name)
+    if(vbTypeInfo.type == 'ArrayTypeName') {
+        type = type + '[' + vbTypeInfo.length.number+ ']'
+        array = true
+        getName_and_Type(vb, vbTypeInfo.baseTypeName, type, mapping, array)
     }
-    
+    if(array & done) {
+        console.log(vb.name, type)
+    }
 
-    // return type
+    if(!mapping && !array){
+        console.log(vb.name, vbTypeInfo.name)
+    }
     
 }
 
