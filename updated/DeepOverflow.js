@@ -82,27 +82,39 @@ function TypeCastChecking(AST) {
                     // This is to ensure that we are calling a direct typecast (and not a member 'transfer', etc function)
                     if(fnCall.expression.name){
                         if(fnCall.expression.name.search(regex) != -1){
-                            // console.log(fnCall.expression.name)
-                            // Explicit type conversions take only 1 argument.
-                            // console.log(fnCall.arguments[0].name)
-                            targetVariable = fnCall.arguments[0].name
+                            console.log(fnCall.expression.name)
+                            targetVariable = {
+                                type: fnCall.expression.name,
+                                name : fnCall.arguments[0].name
+                            }
                             targetFunc = (func.name)
                         }
                     }
                 }
             })
+            if (func.name == targetFunc)
+                func.parameters.forEach(param => {
+                    variableList.push(getName_and_Type(param, param.typeName, "", false, false))
+                })
         }
     })
     contractparser.visit(AST, {
         StateVariableDeclaration: function(svb) {
             // console.log(svb.variables[0].name)
             // Only 1 variable in each *state* variable declaration (for solidity)
-            getName_and_Type(svb.variables[0], svb.variables[0].typeName, "", false, false)
+            variableList.push(getName_and_Type(svb.variables[0], svb.variables[0].typeName, "", false, false))
             // Passing typeName for compatibility issues
             // Type is an empty string and mapping is false for starters.
         }
     })
-    // console.log(variableList)
+    console.log(targetVariable)
+    console.log(variableList)
+
+    variableList.forEach(variable => {
+        if (variable.name == targetVariable.name){
+            console.log("Match found")
+        }
+    })
 }
 
 function getName_and_Type(vb, vbTypeInfo, type, mapping, array) {
@@ -110,7 +122,8 @@ function getName_and_Type(vb, vbTypeInfo, type, mapping, array) {
     if(vbTypeInfo.type == 'Mapping'){
         type = type  + vbTypeInfo.keyType.name + '=>'
         mapping = true
-        getName_and_Type(vb, vbTypeInfo.valueType, type, mapping, array)
+        return getName_and_Type(vb, vbTypeInfo.valueType, type, mapping, array)
+        // We use return here to ensure that the return value of the function when called again is returned.
     }
     if(vbTypeInfo.type == 'ElementaryTypeName'){
         if(mapping){
@@ -123,20 +136,35 @@ function getName_and_Type(vb, vbTypeInfo, type, mapping, array) {
         }
     }
     if(mapping && done) {
-        console.log(vb.name, type)
+        // console.log(type,vb.name)
+        return {
+            type: type, 
+            name: vb.name
+        }
     }
 
     if(vbTypeInfo.type == 'ArrayTypeName') {
         type = type + '[' + vbTypeInfo.length.number+ ']'
         array = true
-        getName_and_Type(vb, vbTypeInfo.baseTypeName, type, mapping, array)
+        return getName_and_Type(vb, vbTypeInfo.baseTypeName, type, mapping, array)
+        // This method explains why remix (would accept values as [20][10] even though the array was actually [10][20])
+        // I am unsure if this is the expected behaviour in all cases.
     }
     if(array & done) {
-        console.log(vb.name, type)
+        // console.log(type,vb.name)
+        return {
+            type: type, 
+            name: vb.name
+        }
+
     }
 
     if(!mapping && !array){
-        console.log(vb.name, vbTypeInfo.name)
+        // console.log (vbTypeInfo.name, vb.name)
+        return {
+            type: vbTypeInfo.name, 
+            name: vb.name
+        }
     }
     
 }
