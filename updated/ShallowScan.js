@@ -4,7 +4,7 @@ const overflow = require('./DeepOverflow.js')
 const ARRAY_MAP = "C:\\Users\\ACER\\assess\\Detectors\\test\\testArrayMap.sol"
 const OVERFLOW = 'C:/Users/ACER/assess/overflow.sol'
 
-let contractCode = fs.readFileSync(ARRAY_MAP, 'utf-8')
+let contractCode = fs.readFileSync(OVERFLOW, 'utf-8')
 
 
 function shallowOverflowScan(token, tokenList, i) {

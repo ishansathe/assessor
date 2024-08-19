@@ -70,11 +70,14 @@ function BinaryUnaryOps(func, idList, targetFunc) {
 
 function TypeCastChecking(AST) {
 
-    let targetVariable ;
+    let modifiedVariable ;
     let targetFunc;
     let variableList = [];
+    let conditionals = false
 
     let regex = /uint\d*/
+
+
     contractparser.visit(AST, {
         FunctionDefinition: function(func) {
             contractparser.visit(func, {
@@ -82,8 +85,8 @@ function TypeCastChecking(AST) {
                     // This is to ensure that we are calling a direct typecast (and not a member 'transfer', etc function)
                     if(fnCall.expression.name){
                         if(fnCall.expression.name.search(regex) != -1){
-                            console.log(fnCall.expression.name)
-                            targetVariable = {
+                            // console.log(fnCall.expression.name)
+                            modifiedVariable = {
                                 type: fnCall.expression.name,
                                 name : fnCall.arguments[0].name
                             }
@@ -98,24 +101,71 @@ function TypeCastChecking(AST) {
                 })
         }
     })
-    contractparser.visit(AST, {
-        StateVariableDeclaration: function(svb) {
-            // console.log(svb.variables[0].name)
-            // Only 1 variable in each *state* variable declaration (for solidity)
-            variableList.push(getName_and_Type(svb.variables[0], svb.variables[0].typeName, "", false, false))
-            // Passing typeName for compatibility issues
-            // Type is an empty string and mapping is false for starters.
-        }
-    })
-    console.log(targetVariable)
-    console.log(variableList)
+    
+    if(modifiedVariable) {
 
-    variableList.forEach(variable => {
-        if (variable.name == targetVariable.name){
-            console.log("Match found")
-        }
-    })
+        // If the typecasting is done, then the statevariables are also checked. Otherwise it is not required.
+        contractparser.visit(AST, {
+            StateVariableDeclaration: function(svb) {
+                // Only 1 variable in each *state* variable declaration (for solidity)
+                variableList.push(getName_and_Type(svb.variables[0], svb.variables[0].typeName, "", false, false))
+                // Passing typeName for compatibility issues
+                // Type is an empty string and mapping and array parameter is false for initialization.
+            }
+        })
+
+
+        variableList.forEach(variable => {
+            TruncationChecker(variable, modifiedVariable)
+            SignednessChecker(variable, modifiedVariable)
+        })
+    }
+    
 }
+
+function TruncationChecker(variable, modifiedVariable) {
+    let typeNumberRegex = /\d*$/g
+    let baseType, targetType
+    if (variable.name == modifiedVariable.name){
+        // console.log(variable.type)
+        baseType = variable.type.match(typeNumberRegex)
+        // Returns a list of matches. Our first element will always be the number
+        baseType = Number(baseType[0])
+        // console.log(baseType)
+
+        targetType = modifiedVariable.type.match(typeNumberRegex)
+        targetType = Number(targetType[0])
+        // console.log(targetType)
+
+        if ((baseType == 0) && (targetType < 256)) {
+            console.log("Truncation Vulnerability detected")
+        }
+        else if ((baseType > targetType)){
+            console.log("Truncation Vulnerability detected")
+        }
+    }
+}
+
+function SignednessChecker(variable, modifiedVariable) {
+    let typeRegex = /.*int/g
+    // '.*' accepts all values. must match with 'int' and must have none or any number of digits [0-9] after 'int'.
+    if(variable.name == modifiedVariable.name){
+        baseVarType = variable.type.match(typeRegex)
+        baseVarType = baseVarType[0]
+        // console.log(baseVarType)
+        modVarType = modifiedVariable.type.match(typeRegex)
+        modVarType = modVarType[0]
+        // console.log(modVarType)
+
+        if ((modVarType == "uint") && (baseVarType == 'int')){
+            // This is because it only matters if an initial variable of type 'int' which can have a -ve value
+            // is converted to uint.
+            // Because the last bit is then no longer used to represent negative integers and hence the value changes.
+            console.log("Signedness Vulnerability discovered!")
+        }
+    }
+}
+
 
 function getName_and_Type(vb, vbTypeInfo, type, mapping, array) {
     let done = false
@@ -208,7 +258,7 @@ function goDeep(contractAST) {
 
 let deepScanOverflow = (contractCode) => {
     contractAST = contractparser.parse(contractCode, {loc: true})
-    // goDeep(contractAST)
+    goDeep(contractAST)
     TypeCastChecking(contractAST)
 }
 
