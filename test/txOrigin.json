@@ -39,6 +39,47 @@
                     "initialValue": null
                 },
                 {
+                    "type": "EventDefinition",
+                    "name": "OriginEvent",
+                    "parameters": [
+                        {
+                            "type": "VariableDeclaration",
+                            "typeName": {
+                                "type": "ElementaryTypeName",
+                                "name": "address",
+                                "stateMutability": null
+                            },
+                            "name": "originAddress",
+                            "identifier": {
+                                "type": "Identifier",
+                                "name": "originAddress"
+                            },
+                            "isStateVar": false,
+                            "isIndexed": true,
+                            "storageLocation": null,
+                            "expression": null
+                        },
+                        {
+                            "type": "VariableDeclaration",
+                            "typeName": {
+                                "type": "ElementaryTypeName",
+                                "name": "uint",
+                                "stateMutability": null
+                            },
+                            "name": "index",
+                            "identifier": {
+                                "type": "Identifier",
+                                "name": "index"
+                            },
+                            "isStateVar": false,
+                            "isIndexed": false,
+                            "storageLocation": null,
+                            "expression": null
+                        }
+                    ],
+                    "isAnonymous": false
+                },
+                {
                     "type": "FunctionDefinition",
                     "name": null,
                     "parameters": [],
@@ -124,46 +165,6 @@
                                 "expression": {
                                     "type": "FunctionCall",
                                     "expression": {
-                                        "type": "Identifier",
-                                        "name": "require"
-                                    },
-                                    "arguments": [
-                                        {
-                                            "type": "BinaryOperation",
-                                            "operator": "==",
-                                            "left": {
-                                                "type": "MemberAccess",
-                                                "expression": {
-                                                    "type": "Identifier",
-                                                    "name": "tx"
-                                                },
-                                                "memberName": "origin"
-                                            },
-                                            "right": {
-                                                "type": "Identifier",
-                                                "name": "owner"
-                                            }
-                                        },
-                                        {
-                                            "type": "StringLiteral",
-                                            "value": "You are not the owner!",
-                                            "parts": [
-                                                "You are not the owner!"
-                                            ],
-                                            "isUnicode": [
-                                                false
-                                            ]
-                                        }
-                                    ],
-                                    "names": [],
-                                    "identifiers": []
-                                }
-                            },
-                            {
-                                "type": "ExpressionStatement",
-                                "expression": {
-                                    "type": "FunctionCall",
-                                    "expression": {
                                         "type": "MemberAccess",
                                         "expression": {
                                             "type": "Identifier",
@@ -175,6 +176,52 @@
                                         {
                                             "type": "Identifier",
                                             "name": "amount"
+                                        }
+                                    ],
+                                    "names": [],
+                                    "identifiers": []
+                                }
+                            }
+                        ]
+                    },
+                    "visibility": "public",
+                    "modifiers": [],
+                    "override": null,
+                    "isConstructor": false,
+                    "isReceiveEther": false,
+                    "isFallback": false,
+                    "isVirtual": false,
+                    "stateMutability": null
+                },
+                {
+                    "type": "FunctionDefinition",
+                    "name": "emitOriginEvent",
+                    "parameters": [],
+                    "returnParameters": null,
+                    "body": {
+                        "type": "Block",
+                        "statements": [
+                            {
+                                "type": "EmitStatement",
+                                "eventCall": {
+                                    "type": "FunctionCall",
+                                    "expression": {
+                                        "type": "Identifier",
+                                        "name": "OriginEvent"
+                                    },
+                                    "arguments": [
+                                        {
+                                            "type": "MemberAccess",
+                                            "expression": {
+                                                "type": "Identifier",
+                                                "name": "tx"
+                                            },
+                                            "memberName": "origin"
+                                        },
+                                        {
+                                            "type": "NumberLiteral",
+                                            "number": "2",
+                                            "subdenomination": null
                                         }
                                     ],
                                     "names": [],
