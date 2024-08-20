@@ -2,12 +2,13 @@ const fs = require('fs')
 const contractparser = require('@solidity-parser/parser')
 const overflow = require('./DeepOverflow.js')
 const txorigin = require('./DeepTxOrigin.js')
+const reentrancy = require('./DeepReentrancy.js')
 const ARRAY_MAP = "C:\\Users\\ACER\\assess\\Detectors\\test\\testArrayMap.sol"
 const OVERFLOW = 'C:/Users/ACER/assess/overflow.sol'
 const TX_ORIGIN = 'C:\\Users\\ACER\\assess\\txOrigin.sol'
 const RE_ENTRANCY = 'C:\\Users\\ACER\\assess\\reentrant.sol'
 
-let contractCode = fs.readFileSync(TX_ORIGIN, 'utf-8')
+let contractCode = fs.readFileSync(RE_ENTRANCY, 'utf-8')
 
 
 function shallowOverflowScan(tokenList, i) {
@@ -62,6 +63,15 @@ function shallowReentrancyScan(tokenList, i) {
         checkFurther = true
     }
 
+    if(!checkFurther) {
+        return false
+    }
+    else{
+        console.log("Beginning Deep Scan for Reentrancy Vulnerability")
+        reentrancy.DeepScanReentrancy(contractCode)
+        return true
+    }
+
 }
 
 function codeTraverser(scCode) {
@@ -87,7 +97,8 @@ function codeTraverser(scCode) {
         }
         if(!reentrancyScan){
             // Deep Scan
-            reentrancyScan = true
+
+            reentrancyScan = shallowReentrancyScan(tokenList, i)
         }
         if(!uncheckedCallScan){
             // Deep Scan
