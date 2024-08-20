@@ -25,7 +25,7 @@ function checkVulnerable(idList, targetFunc, op) {
     // We write 'op' because we are considering both binary and unary operations
     idList.forEach(id => {
         if(id =='msg.value'){
-            console.log(`Function ${targetFunc.name} is potentially vulnerable to overflow exploit at line ${op.loc.start.line}`)
+            console.log(`Function ${targetFunc.name} is potentially vulnerable (msg.value) to overflow exploit at line ${op.loc.start.line}`)
         }
         for(let i = 0; i<targetFunc.params.length; i++){
             if(id === targetFunc.params[i].name){
@@ -220,11 +220,6 @@ function getName_and_Type(vb, vbTypeInfo, type, mapping, array) {
 }
 
 function goDeep(contractAST) {
-    
-    let checkSignednessTruncation = false
-    let typeCastArgList = []
-    // let regex = /^uint\d*$/
-
     contractparser.visit(contractAST, {
         FunctionDefinition: function(func){ 
             

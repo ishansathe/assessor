@@ -1,10 +1,12 @@
 const fs = require('fs')
 const contractparser = require('@solidity-parser/parser')
 const overflow = require('./DeepOverflow.js')
+const txorigin = require('./DeepTxOrigin.js')
 const ARRAY_MAP = "C:\\Users\\ACER\\assess\\Detectors\\test\\testArrayMap.sol"
 const OVERFLOW = 'C:/Users/ACER/assess/overflow.sol'
+const TX_ORIGIN = 'C:\\Users\\ACER\\assess\\txOrigin.sol'
 
-let contractCode = fs.readFileSync(OVERFLOW, 'utf-8')
+let contractCode = fs.readFileSync(TX_ORIGIN, 'utf-8')
 
 
 function shallowOverflowScan(token, tokenList, i) {
@@ -28,8 +30,27 @@ function shallowOverflowScan(token, tokenList, i) {
     else {
         // Deep Scan.
         // Pass the code to deep scan
-        overflow.DeepScanOverflow(contractCode)
         console.log("Beginning Deep Scan")
+        overflow.DeepScanOverflow(contractCode)
+        return true
+    }
+}
+
+function shallowTxOriginScan(tokenList, i) {
+    let checkFurther = false
+    for(let i=0; i<tokenList.length; i++ ){
+        if((tokenList[i].type == 'Identifier') && (tokenList[i].value == 'tx'))
+            if((tokenList[i+1].type == 'Punctuator') && (tokenList[i+1].value == '.'))
+                if((tokenList[i+2].type == 'Identifier') && (tokenList[i+2].value == 'origin'))
+                    checkFurther = true
+    }
+
+    if(!checkFurther) {
+        return false
+    }
+    else {
+        console.log("Beginning Deep Scan")
+        txorigin.DeepScanTxOrigin(contractCode)
         return true
     }
 }
@@ -44,15 +65,16 @@ function codeTraverser(scCode) {
 
     for(let i =0; i<tokenList.length; i++) {
         if(!overFlowScan) {
-            overFlowScan = shallowOverflowScan(tokenList[i], tokenList, i)
+            // overFlowScan = shallowOverflowScan(tokenList[i], tokenList, i)
             // console.log('found')
             // console.log(token)
-            // overFlowScan = true
+            overFlowScan = true
         }
 
         if(!txOriginScan){
+            txOriginScan = shallowTxOriginScan(tokenList, i)
             // Deep Scan
-            txOriginScan = true
+            // txOriginScan = true
         }
         if(!reentrancyScan){
             // Deep Scan
