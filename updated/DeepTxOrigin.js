@@ -9,7 +9,7 @@ function findTxOrigin(AST) {
     let memAccess
 
     contractparser.visit(AST, {
-        FunctionCall: function (fnCall) {
+        FunctionCall: function (fnCall, parent) {
             if(fnCall.expression.name == 'require'){
                 // This is because require only takes 2 arguments, 1st is the condition and the second an (optional) string statement
                 // Informing user of the reason for failure of condition
@@ -47,7 +47,17 @@ function findTxOrigin(AST) {
                     }
                 }
             }
-        }
+            if(parent.type == 'EmitStatement'){
+                fnCall.arguments.forEach( arg => {
+                    if (arg.type == 'MemberAccess'){
+                        memAccess = getMemberAccess(arg)
+                        if(memAccess =='tx.origin'){
+                            console.log("Tx.origin is used in an emit statement for events. Hence, not vulnerable")
+                        }
+                    }
+                })
+            }
+        },
     })
 }
 
