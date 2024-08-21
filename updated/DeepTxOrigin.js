@@ -5,8 +5,25 @@ function getMemberAccess(node) {
     return (node.expression.name+'.'+node.memberName)  
 }
 
+function checkNicheAuthentication(paramLeft, paramRight){
+    let leftMemAccess, rightMemAccess
+    if(paramLeft.type == 'MemberAccess'){
+        leftMemAccess = getMemberAccess(paramLeft)
+    }
+    if(paramRight.type == 'MemberAccess'){
+        rightMemAccess = getMemberAccess(paramRight)
+    }
+
+    if(((leftMemAccess == 'tx.origin') && (rightMemAccess == 'msg.sender') )
+        ||((leftMemAccess == 'msg.sender') && (rightMemAccess == 'tx.origin'))) {
+    return true
+    }
+    else return false
+}
+
 function findTxOrigin(AST) {
     let memAccess
+    let niche = false
 
     contractparser.visit(AST, {
         FunctionCall: function (fnCall, parent) {
@@ -17,14 +34,22 @@ function findTxOrigin(AST) {
                     let fnCallParams = fnCall.arguments[0]
                     if(fnCallParams.left.type == "MemberAccess"){
                         memAccess = getMemberAccess(fnCallParams.left)
-                        if(memAccess == 'tx.origin')
+
+                        niche = checkNicheAuthentication(fnCallParams.left, fnCallParams.right)
+                        if (niche) {
+                            console.log("Niche use case detected. Not vulnerable")
+                        }
+                        else if(memAccess == 'tx.origin')
                             console.log("Tx.origin is being used for 'Authentication'! Hence, is vulnerable.")
                     }
 
                     if(fnCallParams.right.type == "MemberAccess"){
                         memAccess = getMemberAccess(fnCallParams.right)
-                        console.log(memAccess)
-                        if(memAccess == 'tx.origin')
+                        niche = checkNicheAuthentication(fnCallParams.left, fnCallParams.right)
+                        if (niche) {
+                            console.log("Niche use case detected. Not vulnerable")
+                        }
+                        else if(memAccess == 'tx.origin')
                             console.log("Tx.origin is being used for 'Authentication'! Hence, is vulnerable.")
                     }
                 }

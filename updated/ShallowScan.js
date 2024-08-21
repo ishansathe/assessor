@@ -8,7 +8,7 @@ const OVERFLOW = 'C:/Users/ACER/assess/overflow.sol'
 const TX_ORIGIN = 'C:\\Users\\ACER\\assess\\txOrigin.sol'
 const RE_ENTRANCY = 'C:\\Users\\ACER\\assess\\reentrant.sol'
 
-let contractCode = fs.readFileSync(RE_ENTRANCY, 'utf-8')
+let contractCode = fs.readFileSync(TX_ORIGIN, 'utf-8')
 
 
 function shallowOverflowScan(tokenList, i) {
@@ -84,10 +84,10 @@ function codeTraverser(scCode) {
 
     for(let i =0; i<tokenList.length; i++) {
         if(!overFlowScan) {
-            // overFlowScan = shallowOverflowScan(tokenList, i)
+            overFlowScan = shallowOverflowScan(tokenList, i)
             // console.log('found')
             // console.log(token)
-            overFlowScan = true
+            // overFlowScan = true
         }
 
         if(!txOriginScan){

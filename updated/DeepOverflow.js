@@ -123,7 +123,7 @@ function TypeCastChecking(AST) {
     
 }
 
-function TruncationChecker(variable, modifiedVariable) {
+function TruncationChecker(variable, modifiedVariable) { 
     let typeNumberRegex = /\d*$/g
     let baseType, targetType
     if (variable.name == modifiedVariable.name){
